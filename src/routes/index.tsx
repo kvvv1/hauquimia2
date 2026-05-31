@@ -5,6 +5,76 @@ import { ProductItem } from "@/components/ProductItem";
 import LOGO from "@/assets/logo-remove.png";
 import ICON from "@/assets/icon.png";
 
+/* Intro overlay — plays on every page load, click skips */
+function IntroOverlay({ onDone }: { onDone: () => void }) {
+  const [phase, setPhase] = useState<"in" | "hold" | "out">("in");
+
+  useEffect(() => {
+    const hold = setTimeout(() => setPhase("hold"), 1200);
+    const out  = setTimeout(() => setPhase("out"),  3000);
+    const done = setTimeout(onDone,                  3900);
+    return () => { clearTimeout(hold); clearTimeout(out); clearTimeout(done); };
+  }, [onDone]);
+
+  return (
+    <div
+      onClick={() => { setPhase("out"); setTimeout(onDone, 800); }}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 9999,
+        backgroundColor: "var(--hq-navy)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "pointer",
+        opacity: phase === "out" ? 0 : 1,
+        transition: phase === "out" ? "opacity 800ms cubic-bezier(0.4,0,1,1)" : "none",
+        pointerEvents: phase === "out" ? "none" : "auto",
+      }}
+    >
+      <img
+        src={LOGO}
+        alt="Haquímia"
+        style={{
+          width: 280,
+          height: 280,
+          objectFit: "contain",
+          opacity: phase === "in" ? 0 : 1,
+          transform: phase === "in" ? "translateY(20px) scale(0.97)" : "translateY(0) scale(1)",
+          transition: "opacity 1100ms cubic-bezier(0.16,1,0.3,1), transform 1100ms cubic-bezier(0.16,1,0.3,1)",
+        }}
+      />
+      <p
+        style={{
+          fontFamily: "var(--font-body)",
+          fontWeight: 300,
+          fontSize: "0.55rem",
+          letterSpacing: "0.35em",
+          textTransform: "uppercase",
+          color: "rgba(184,144,42,0.75)",
+          marginTop: 8,
+          opacity: phase === "in" ? 0 : 1,
+          transition: "opacity 900ms cubic-bezier(0.16,1,0.3,1) 400ms",
+        }}
+      >
+        Joalheria artesanal brasileira
+      </p>
+      <div
+        style={{
+          height: 1,
+          backgroundColor: "var(--hq-gold)",
+          opacity: 0.4,
+          marginTop: 28,
+          width: phase === "in" ? 0 : 40,
+          transition: "width 800ms cubic-bezier(0.16,1,0.3,1) 600ms",
+        }}
+      />
+    </div>
+  );
+}
+
 /* Fires once when the element enters the viewport */
 function useInView<T extends HTMLElement = HTMLDivElement>(threshold = 0.18) {
   const ref = useRef<T>(null);
@@ -118,6 +188,7 @@ const WA_CUSTOM =
   "https://wa.me/553190621354?text=Olá!%20Gostaria%20de%20criar%20uma%20joia%20personalizada%20na%20Haquímia.";
 
 function Index() {
+  const [introVisible, setIntroVisible] = useState(true);
   const [active, setActive] = useState<Filter>("todos");
   const [scrolled, setScrolled] = useState(false);
   const [ctaRef, ctaVisible] = useInView<HTMLElement>(0.15);
@@ -151,6 +222,7 @@ function Index() {
 
   return (
     <div style={{ backgroundColor: "var(--hq-white)", color: "var(--hq-dark)", minHeight: "100vh" }}>
+      {introVisible && <IntroOverlay onDone={() => setIntroVisible(false)} />}
 
       {/* Navy top bar — slides in from left on load */}
       <div
